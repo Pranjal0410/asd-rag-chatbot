@@ -1,6 +1,6 @@
 streamlit
 groq
-chromadb==0.5.23
+faiss-cpu
 PyPDF2
 sentence-transformers
-numpy==1.26.4
+numpy

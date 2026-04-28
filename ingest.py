@@ -1,6 +1,7 @@
-import chromadb
+import faiss
 import PyPDF2
 import json
+import numpy as np
 from collections import defaultdict
 from sentence_transformers import SentenceTransformer
 
@@ -25,7 +26,6 @@ def extract_pages(pdf_path):
 def build_page_index(pages):
     page_index = defaultdict(list)
     page_contents = {}
-
     for page in pages:
         page_num = page["page_num"]
         page_contents[str(page_num)] = page["text"]
@@ -37,7 +37,6 @@ def build_page_index(pages):
         for keyword in keywords:
             if page_num not in page_index[keyword]:
                 page_index[keyword].append(page_num)
-
     return dict(page_index), page_contents
 
 def make_chunks(pages, chunk_size=50, overlap=10):
@@ -50,10 +49,9 @@ def make_chunks(pages, chunk_size=50, overlap=10):
             end = start + chunk_size
             chunk_text = " ".join(words[start:end])
             chunks.append({
-                "id": f"chunk_{chunk_id}",
+                "id": chunk_id,
                 "text": chunk_text,
                 "page_num": page["page_num"],
-                "chunk_index": chunk_id
             })
             chunk_id += 1
             start += chunk_size - overlap
@@ -70,36 +68,27 @@ def index_resume(pdf_path="ASD.pdf"):
         json.dump(page_index, f)
     with open("page_contents.json", "w") as f:
         json.dump(page_contents, f)
-    print(f"   {len(page_index)} unique keywords index hue")
+    print(f"   {len(page_index)} keywords index hue")
 
     print("✂️  Chunks bana raha hoon...")
     chunks = make_chunks(pages)
+    with open("chunks.json", "w") as f:
+        json.dump(chunks, f)
     print(f"   {len(chunks)} chunks bane")
 
     print("🔢 Embeddings bana raha hoon...")
-    client = chromadb.PersistentClient(path="./chroma_db")
-    try:
-        client.delete_collection("resume")
-    except:
-        pass
-    collection = client.create_collection("resume")
+    texts = [c["text"] for c in chunks]
+    embeddings = model.encode(texts, show_progress_bar=True).astype("float32")
 
-    for i, chunk in enumerate(chunks):
-        embedding = model.encode(chunk["text"]).tolist()
-        collection.add(
-            ids=[chunk["id"]],
-            embeddings=[embedding],
-            documents=[chunk["text"]],
-            metadatas=[{
-                "page_num": chunk["page_num"],
-                "chunk_index": chunk["chunk_index"]
-            }]
-        )
-        print(f"   chunk {i+1}/{len(chunks)} store hua", end="\r")
+    print("💾 FAISS index bana raha hoon...")
+    dimension = embeddings.shape[1]
+    index = faiss.IndexFlatL2(dimension)
+    index.add(embeddings)
+    faiss.write_index(index, "faiss_index.bin")
 
     print(f"\n✅ Done!")
     print(f"   Page index: {len(page_index)} keywords")
-    print(f"   Vector DB: {len(chunks)} chunks")
+    print(f"   FAISS: {len(chunks)} chunks")
 
 if __name__ == "__main__":
     index_resume()
