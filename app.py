@@ -93,7 +93,7 @@ if question := st.chat_input("Kuch bhi poochho..."):
                     st.warning(f"⚠️ {len(sanitised)} chunk(s) sanitised")
 
                 # low relevance → web fallback
-                if not chunks or all(c["score"] < 0.3 for c in chunks):
+                if not chunks or all(c["score"] < 0.45 for c in chunks):
                     source_label = "🌐 Web Fallback"
                     tavily = TavilyClient(api_key=os.environ.get("TAVILY_API_KEY"))
                     try:
