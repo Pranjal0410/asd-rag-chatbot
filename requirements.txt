@@ -5,4 +5,4 @@ PyPDF2==3.0.1
 sentence-transformers==2.2.2
 numpy==1.24.3
 tavily-python==0.3.0
-supermemory==0.1.0
+supermemory==3.37.0
