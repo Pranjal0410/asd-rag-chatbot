@@ -115,7 +115,7 @@ if question := st.chat_input("Kuch bhi poochho..."):
                 web_context
             )
 
-            groq_client = Groq()
+            groq_client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
             response = groq_client.chat.completions.create(
                 model="llama-3.3-70b-versatile",
                 messages=[{"role": "user", "content": prompt}]
