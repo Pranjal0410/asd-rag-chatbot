@@ -81,6 +81,16 @@ if question := st.chat_input("Kuch bhi poochho..."):
                         web_context += f"{r['title']}\n{r['content'][:300]}\n\n"
                 except Exception as e:
                     st.error(f"Web search error: {e}")
+        
+            elif chunks and max(c["score"] for c in chunks) < 0.45:
+                source_label = "🌐 Web Fallback"
+                tavily = TavilyClient(api_key=os.environ.get("TAVILY_API_KEY"))
+            try:
+                results = tavily.search(query=question, max_results=3)
+                for r in results["results"]:
+                web_context += f"{r['title']}\n{r['content'][:300]}\n\n"
+            except Exception as e:
+                st.error(f"Web search error: {e}")
 
             else:
                 # ── GUARDRAIL 2: CONTEXT ──────────────────────────────────────

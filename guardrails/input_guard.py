@@ -100,8 +100,8 @@ def aggregate(signals, provenance="user"):
 def decide(score):
     if score >= 0.85:
         return "BLOCK"
-    elif score >= 0.40:
-        return "SANITISE"  # web search fallback
+    elif score >= 0.35:  # 0.40 se 0.35 karo
+        return "SANITISE"
     else:
         return "ALLOW"
 

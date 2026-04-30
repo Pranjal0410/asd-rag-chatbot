@@ -93,7 +93,8 @@ def ask(query, chat_history=None):
         print(f"🛡️  Context: {len(raw_chunks)} chunks → {len(chunks)} safe chunks")
 
         # chunks relevant nahi → web fallback
-        if not chunks or all(c["score"] < 0.3 for c in chunks):
+        if not chunks or all(c["score"] < 0.45 for c in chunks) or \
+   (chunks and max(c["score"] for c in chunks) < 0.45):
             print("🌐 Low relevance — web search fallback...")
             web_context = web_search(query)
 
